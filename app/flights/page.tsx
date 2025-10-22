@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function FlightsPage() {
   const [tripType, setTripType] = useState<'one-way' | 'round-trip' | 'multi-city'>('one-way');
@@ -11,6 +12,24 @@ export default function FlightsPage() {
   const [seats, setSeats] = useState('1');
   const [flightClass, setFlightClass] = useState('Economy');
   const [activeNav, setActiveNav] = useState('home');
+  const [showNotification, setShowNotification] = useState(false);
+
+  useEffect(() => {
+    // 頁面載入後 1 秒顯示通知
+    const showTimer = setTimeout(() => {
+      setShowNotification(true);
+    }, 1000);
+
+    // 5 秒後自動隱藏
+    const hideTimer = setTimeout(() => {
+      setShowNotification(false);
+    }, 6000);
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
 
   const handleSearch = () => {
     console.log({ tripType, origin, destination, departureDate, returnDate, seats, flightClass });
@@ -23,7 +42,7 @@ export default function FlightsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-600">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-600">
       {/* Mobile Header - Only on small screens */}
       <header className="flex items-center justify-between px-4 py-4 md:hidden">
         <div className="flex items-center gap-3">
@@ -35,9 +54,11 @@ export default function FlightsPage() {
             <h1 className="text-lg font-semibold text-white">Andrew Ainsley</h1>
           </div>
         </div>
-        <button className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors">
-          <BellIcon />
-        </button>
+        <Link href="/notifications">
+          <button className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors">
+            <BellIcon />
+          </button>
+        </Link>
       </header>
 
       {/* Desktop Layout */}
@@ -100,17 +121,12 @@ export default function FlightsPage() {
               <BookmarkIcon />
               <span className="font-medium">Saved</span>
             </button>
-            <button
-              onClick={() => setActiveNav('wallet')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeNav === 'wallet'
-                  ? 'bg-gray-200 text-gray-900 shadow-lg'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-gray-100'
-              }`}
-            >
-              <WalletIcon />
-              <span className="font-medium">Wallet</span>
-            </button>
+            <Link href="/wallet">
+              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-300 hover:bg-gray-800 hover:text-gray-100">
+                <WalletIcon />
+                <span className="font-medium">Wallet</span>
+              </button>
+            </Link>
           </nav>
 
           {/* User Profile */}
@@ -136,10 +152,12 @@ export default function FlightsPage() {
               <p className="text-gray-400 mt-1">Where would you like to go today?</p>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-3 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors">
-                <BellIcon />
-                <span className="absolute top-2 right-2 h-2 w-2 bg-gray-400 rounded-full"></span>
-              </button>
+              <Link href="/notifications">
+                <button className="relative p-3 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors">
+                  <BellIcon />
+                  <span className="absolute top-2 right-2 h-2 w-2 bg-gray-400 rounded-full"></span>
+                </button>
+              </Link>
               <button className="p-3 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors">
                 <SettingsIcon />
               </button>
@@ -469,16 +487,68 @@ export default function FlightsPage() {
             <TicketIcon />
             <span className="text-xs text-white/60">Bookings</span>
           </button>
-          <button className="flex flex-col items-center gap-1">
-            <WalletIcon />
-            <span className="text-xs text-white/60">Wallet</span>
-          </button>
+          <Link href="/wallet">
+            <button className="flex flex-col items-center gap-1">
+              <WalletIcon />
+              <span className="text-xs text-white/60">Wallet</span>
+            </button>
+          </Link>
           <button className="flex flex-col items-center gap-1">
             <UserIcon />
             <span className="text-xs text-white/60">Account</span>
           </button>
         </div>
       </nav>
+
+      {/* Notification Toast - Desktop: Bottom Right / Mobile: Top Center */}
+      {showNotification && (
+        <div
+          className={`fixed z-50 animate-slide-in ${
+            // Desktop: 右下角
+            'md:bottom-8 md:right-8 md:top-auto md:left-auto md:translate-x-0 ' +
+            // Mobile: 頂部中央
+            'top-20 left-4 right-4 md:w-96'
+          }`}
+        >
+          <Link href="/notifications">
+            <div className="bg-gray-900/95 backdrop-blur-lg rounded-2xl p-4 shadow-2xl border border-gray-700 cursor-pointer hover:bg-gray-800/95 transition-all hover:scale-[1.02] group">
+              <div className="flex items-start gap-4">
+                {/* Icon */}
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-blue-600/20 border-2 border-blue-500 flex items-center justify-center">
+                  <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="text-base font-semibold text-gray-100">New Feature Alert!</h3>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowNotification(false);
+                      }}
+                      className="flex-shrink-0 p-1 hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <svg className="h-4 w-4 text-gray-400 hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-400 leading-relaxed mb-2">
+                    Discover exciting new app features. Enhance your travel experience today!
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">Just now</span>
+                    <span className="text-xs text-blue-400 font-medium group-hover:text-blue-300">View →</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
